@@ -1,3 +1,4 @@
+// Commander provides an interface to register, parse, and execute command line commands.
 package commander
 
 import (
@@ -18,16 +19,20 @@ Use {{.Application}} help [command] for more information.`
 {{.command.Description}}`
 )
 
+// The struct that holds the application instance and command.
 type Commander struct {
 	Application string
 	Commands    map[string]*Command
 }
 
+// The struct that holds the command name, invocation, description and the
+// function to execute.
 type Command struct {
 	Name, Invoke, Description string
 	Run                       func(args []string)
 }
 
+// Returns an new commander struct, that knows its name.
 func NewCommander(application string) *Commander {
 	commander := &Commander{
 		Application: application,
@@ -36,6 +41,7 @@ func NewCommander(application string) *Commander {
 	return commander
 }
 
+// Use this on the returned commander to register a command.
 func (c *Commander) RegisterCommand(name, invoke, description string, f func(args []string)) {
 	command := &Command{
 		name, invoke, description, f,
@@ -44,6 +50,7 @@ func (c *Commander) RegisterCommand(name, invoke, description string, f func(arg
 	c.Commands[invoke] = command
 }
 
+// Pass in the arg string to find the command and execute it.
 func (c *Commander) ExecuteCommand(args []string) bool {
 	if len(args) < 1 {
 		c.usage()
@@ -61,11 +68,13 @@ func (c *Commander) ExecuteCommand(args []string) bool {
 	return false
 }
 
+// Internal func to show the usage of registerd commands.
 func (c *Commander) usage() {
 	renderTpl(os.Stderr, usageTemplate, c)
 	os.Exit(2)
 }
 
+// Internal func to show how to use a particular command.
 func (c *Commander) help(invoke string) {
 	if command, ok := c.Commands[invoke]; ok {
 		data := make(map[string]interface{})
@@ -75,6 +84,7 @@ func (c *Commander) help(invoke string) {
 	}
 }
 
+// Renders the desired usage or help template with the data required.
 func renderTpl(w io.Writer, text string, data interface{}) {
 	t := template.New("top")
 	template.Must(t.Parse(text))
